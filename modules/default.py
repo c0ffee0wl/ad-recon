@@ -1,7 +1,10 @@
 from modules import query
+import time
 
 def default_queries(driver):
+    #start_time = time.time()
     query.get_domains(driver)
+    #print('Time taken: {:0.2f}s'.format(time.time() - start_time))
     query.get_DCs(driver)
     query.get_computers(driver)
     query.get_sessionCount(driver)
@@ -31,9 +34,9 @@ def default_queries(driver):
     query.get_userNoLogon(driver)
     query.get_computersNoLAPS(driver)
     query.get_oldComps(driver)
-    query.get_firstDegreeUserDCOM(driver)
-    query.get_groupDelUserDCOM(driver)
-    query.get_firstDegreeGroupDCOM(driver)
+    #query.get_firstDegreeUserDCOM(driver) # NEED TO MOVE TO DCOM MODULE 
+    #query.get_groupDelUserDCOM(driver)
+    #query.get_firstDegreeGroupDCOM(driver)
     query.get_passNeverExpire(driver)
     query.get_disabledOutboundRights_firstDegree(driver)
     query.get_passNotRequired(driver)

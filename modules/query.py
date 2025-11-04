@@ -119,7 +119,8 @@ def get_ownedUsers(driver):
             das.append("None")
 
     result = do_query(driver, "MATCH (m:User {enabled: true, admincount: true}) WHERE m.owned=TRUE RETURN m.name")
-    print("Compromised Enabled Users with admincount true: ")
+    if result:
+        print("Compromised Enabled Users with admincount true: ")
     for record in result:
         if record["m.name"]:
             if record["m.name"] in das:
