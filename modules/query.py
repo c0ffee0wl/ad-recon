@@ -889,3 +889,101 @@ def get_computerOutboundRights_trans(driver):
     with open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
     print("[+] Generating a List of Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+entries+") lines")
+
+
+def get_passNeverExpires(driver):
+    result = do_query("MATCH (u:User {enabled: true}) WHERE u.pwdneverexpires=True return u.name, u.pwdneverexpires, datetime({ epochSeconds:toInteger(u.pwdlastset)}) as pwdlast ORDER BY pwdlast")
+    userdesc_file=open("user_enabled_passNeverExpires.txt", "w")
+    for record in result:
+        if record["uname""]:
+            user_name=record["u.name""]
+        else:
+            user_name=""
+        if record["pwdlast"]:
+            pwdlast=record["pwdlast"]
+        else:
+            pwdlast=""
+        if record["u.pwdneverexpires"]:
+            user_exp=record["u.pwdneverexpires"]
+        else:
+            user_exp=""
+        if user_exp == True:
+            userdesc_file.write(user_name+", "+str(user_exp)+","+str(pwdlast)+"\n")
+        else:
+            userdesc_file.write(user_name+"\n")
+    userdesc_file.close()
+
+    with open("user_enabled_passNeverExpires.txt", "r") as fp:
+        entries = str(len(fp.readlines()))
+    print("[+] Enabled Users With Paswords That Never Expire: user_enabled_passNeverExpires.txt ("+entries") lines")
+
+
+def get_disabledOutboundRights_firstDegree(driver):
+    result = do_query(driver, "MATCH (m:User {enabled: false}) return m.name, m.objectid, m.admincount")
+    user_outbound_file=open("disabled-users_outbound_first_rights.txt", "w")
+    for record in result:
+        if record["m.name"]:
+            username=record["m.name"]
+            objectid=record["m.objectid"]
+            admincount=record["m.admincount"]
+            result_outbound = do_query(driver, "MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl==true RETURN count(p)")
+            for record_outbound in result_outbound:
+                if record_outbound["cound(p)"]:
+                    firstdegree_rights=str(record_outbound["count(p)"])
+                    user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+" Admincount: "+str(admincount)+"\n")
+    user_outbound_file.close()
+
+def get_passNotRequired(driver):
+    result = do_query(driver, "MATCH (u:User {passwordnotreqd: true, enabled: true}) return u.name")
+    pass_file=open("users-enabled-PassNotReqd.txt", "w")
+    for record in result:
+        if record["u.name"]:
+            user_name=record["u.name"]
+        else:
+            user_name=""
+        pass_file.write(user_name+"\n")
+    pass_file.close()
+
+    with open("users-enabled-PassNotReqd.txt", "r") as fp:
+        entries = str(len(fp.readlines()))
+    print("[+] Generating Enabled Users with PasswordNotReqd True: users-enabled-PassNotReqd.txt("+entries+") lines")
+
+
+def get_allowedToAct(driver):
+    result = do_query(driver, "MATCH p = (n)-[r:AllowedToAct]->(g:Computer) RETURN n.name, g.name")
+    das_file=open("AllowedToAct.txt", "w")
+    for record in result:
+        if record["n.name"]:
+            user_name=record["n.name"]
+            computer_name=record["g.name"]
+            das_file.write["[*] "+user_name" has AllowedToAct over "+computer_name+"\n"]
+    das_file.close()
+
+    with open("AllowedToAct", "r") as fp:
+        entries = str(len(fp.readlines()))
+    print("[+] Generating List of AD Objects AllowedToAct on another AD object ("+entries") lines")
+
+
+def get_writeAccountRestrictions(driver):
+    result = do_query(driver, "MATCH p = (n)-[r:WriteAccountRestrictions]->(g:Computer) RETURN n.name, g.name")
+    das_file=open("WriteAccountRestrictions.txt", "w")
+    for record in result:
+        if record["n.name"]:
+            user_name=record["n.name"]
+            computer_name=record["g.name"]
+            das_file.write("[*] "+user_name+" has WriteAccountRestirctions over "+computer_name+"\n")
+    das_file.close()
+
+    with open("WriteAccountRestrictions.txt", "r") as fp:
+        entries = str(len(fp.readlines()))
+    print("[+] Generating List of AD objects with WriteAccountRestrictions on another AD object ("+entires+") lines")
+
+
+
+
+
+
+
+
+
+

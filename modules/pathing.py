@@ -7,3 +7,6 @@ def pathing_queries(driver):
     query.get_userOutboundRights_firstdegree(driver)
     query.get_hvtRights(driver)
     query.get_gpoRights(driver)
+    #query.get_userPathToDA()
+    #query.get_groupPathToDA()
+    #query.get_computerPathToDA()
