@@ -149,7 +149,7 @@ def get_daSessions(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/da_sessions.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Domain Admin Sessions: da_sessions.txt ("+entries+") lines")
+    print("[+] Generating Domain Admin Sessions: da_sessions.txt ("+entries+") lines")
 
 
 # Generate a file with all the owners of the the computer objects within current dataset
@@ -167,7 +167,7 @@ def get_compOwners(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/comp_owners.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Owners for the Computers in AD: comp_owners.txt ("+entries+") lines")
+    print("[+] Generating Owners for the Computers in AD: comp_owners.txt ("+entries+") lines")
 
 
 
@@ -190,7 +190,7 @@ def get_sessions(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/sessions_all.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of all Sessions: sessions_all.txt ("+entries+") lines")
+    print("[+] Generating all Sessions: sessions_all.txt ("+entries+") lines")
 
 
 # Generate file with all users that have local admin rights:
@@ -212,7 +212,7 @@ def get_localAdmins(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/users_localadmins.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of users with local admin rights: users_localadmins.txt ("+entries+") lines")
+    print("[+] Generating users with local admin rights: users_localadmins.txt ("+entries+") lines")
 
 
 
@@ -237,7 +237,7 @@ def get_certTempNotAdmin(driver):
     cert_file.close()
     with open(config['bloodhound']['OUTPUT_DIR'] + "/vuln_certs.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of certificate templates where interesting principals can modify (Not DA|EA|DC|Administrators) - Investigate these inbound rights: vuln_certs.txt ("+entries+") lines")
+    print("[+] Generating Certificate Templates Where Interesting Principals Can Modify (Not DA|EA|DC|Administrators) - Investigate these inbound rights: vuln_certs.txt ("+entries+") lines")
 
 
 # Multiple stage query to generate a list of certificate templates and list of principals with enroll rights > cert_enroll_permissions.txt
@@ -264,7 +264,7 @@ def get_certEnroll(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/cert_enroll_permissions.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of certificate templates and list of principals with enroll rights: cert_enroll_permissions.txt ("+entries+") lines")
+    print("[+] Generating Certificate Templates and Principals with Enroll Rights: cert_enroll_permissions.txt ("+entries+") lines")
 
 
 # Generate file with users and descriptions: user_descriptions.txt
@@ -545,7 +545,7 @@ def get_unconstrainedDel(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/unconstrained_delegation.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of objects with unconstrained delegation (should really only be DCs): unconstrained_delegation.txt ("+entries+") lines")
+    print("[+] Generating objects with unconstrained delegation (should really only be DCs): unconstrained_delegation.txt ("+entries+") lines")
 
 
 # Generate a list of enabled users with passwordlastset value greater than 365 days: enabled_users_passwordlastset_1yr.txt
@@ -567,7 +567,7 @@ ORDER BY days_since_pwdlastset DESC'''
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/enabled_users_passwordlastset_1yr.txt", "r") as fp:
         entries = str(len(fp.readlines())) 
-    print("[+] Generating list of enabled users with passwordlastset value greater than 365 days: enabled_users_passwordlastset_1yr.txt ("+entries+") lines")
+    print("[+] Generating enabled users with passwordlastset value greater than 365 days: enabled_users_passwordlastset_1yr.txt ("+entries+") lines")
 
 
 # Generate a list of enabled Users who have never logged on: enabledacct_never_loggedon.txt"
@@ -635,7 +635,7 @@ def get_firstDegreeUserDCOM(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_user_dcom_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of Users first degree DCOM rights: firstdegree_user_dcom_rights.txt ("+entries+") lines")
+    print("[+] Generating Users first degree DCOM rights: firstdegree_user_dcom_rights.txt ("+entries+") lines")
 
 
 # Get group delegated DCOM Privs
@@ -656,7 +656,7 @@ def get_groupDelUserDCOM(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/groupdel_user_dcom_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of Users group delegated DCOM rights: groupdel_user_dcom_rights.txt ("+entries+") lines")
+    print("[+] Generating Users group delegated DCOM rights: groupdel_user_dcom_rights.txt ("+entries+") lines")
 
 
 # Get 1st degree Group DCOM Privs
@@ -677,7 +677,7 @@ def get_firstDegreeGroupDCOM(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_group_dcom_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of Groups first degree DCOM rights: firstdegree_group_dcom_rights.txt ("+entries+") lines")
+    print("[+] Generating Groups first degree DCOM rights: firstdegree_group_dcom_rights.txt ("+entries+") lines")
 
 
 
@@ -702,7 +702,7 @@ def get_hvtRights(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/hvt_inbound_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of High Value Targets (HVT) and inbound rights: hvt_inbound_rights.txt ("+entries+") lines")
+    print("[+] Generating High Value Targets (HVT) and inbound rights: hvt_inbound_rights.txt ("+entries+") lines")
 
 
 
@@ -735,7 +735,7 @@ def get_gpoRights(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/gpo_inbound_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))   
-    print("[+] Generating list of GPOs and inbound rights (Total GPOs: "+count+" this will take a bit ~5-10secs per GPO): gpo_inbound_rights.txt ("+entries+") lines")
+    print("[+] Generating GPOs and inbound rights (Total GPOs: "+count+" this will take a bit ~5-10secs per GPO): gpo_inbound_rights.txt ("+entries+") lines")
 
 
 # Multiple query to get the transitive outbound rights for a set of groups defined as "starter_groups" list below
@@ -772,7 +772,7 @@ def get_startingPoints(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/common_groups_outboundrights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating list of common groups and their transitive outbound rights - investigate for anomalies: common_groups_outboundrights.txt ("+entries+") lines")
+    print("[+] Generating common groups and their transitive outbound rights - investigate for anomalies: common_groups_outboundrights.txt ("+entries+") lines")
 
 
 def get_serverRDP(driver):
@@ -791,7 +791,7 @@ def get_serverRDP(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/server_RDP.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Servers with First Degree RDP Rights: server_RDP.txt ("+entries+") lines")
+    print("[+] Generating Servers with First Degree RDP Rights: server_RDP.txt ("+entries+") lines")
 
 
 def get_userOutboundRights_firstdegree(driver):
@@ -810,7 +810,7 @@ def get_userOutboundRights_firstdegree(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/users_outbound_1st_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Users with First Degree Outbound Rights: users_outbound_1st_rights.txt ("+entries+") lines")
+    print("[+] Generating Users with First Degree Outbound Rights: users_outbound_1st_rights.txt ("+entries+") lines")
 
 
 def get_serverAdminGroup(driver):
@@ -829,7 +829,7 @@ def get_serverAdminGroup(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/server_admin_bygroup.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Groups with First Degree Admin Rights: server_admin_bygroup.txt ("+entries+") lines")
+    print("[+] Generating Groups with First Degree Admin Rights: server_admin_bygroup.txt ("+entries+") lines")
 
 
 def get_userOutboundRights_trans(driver):
@@ -848,7 +848,7 @@ def get_userOutboundRights_trans(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/users_outbound_trans_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Users with Transitive Outbound Rights: users_outbound_trans_rights.txt ("+entries+") lines")
+    print("[+] Generating Users with Transitive Outbound Rights: users_outbound_trans_rights.txt ("+entries+") lines")
 
 
 
@@ -869,7 +869,7 @@ def get_userinboundRights_trans(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/users_inbound_trans_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Users with Transitive Inbound Rights: users_inbound_trans_rights.txt ("+entries+") lines")
+    print("[+] Generating Users with Transitive Inbound Rights: users_inbound_trans_rights.txt ("+entries+") lines")
 
 
 
@@ -889,7 +889,7 @@ def get_computerOutboundRights_trans(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+entries+") lines")
+    print("[+] Generating Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+entries+") lines")
 
 
 def get_passNeverExpire(driver):
@@ -916,7 +916,7 @@ def get_passNeverExpire(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/user_enabled_passNeverExpires.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Enabled Users With Paswords That Never Expire: user_enabled_passNeverExpires.txt ("+entries+") lines")
+    print("[+] Generating Enabled Users With Paswords That Never Expire: user_enabled_passNeverExpires.txt ("+entries+") lines")
 
 
 def get_disabledOutboundRights_firstDegree(driver):
@@ -936,7 +936,7 @@ def get_disabledOutboundRights_firstDegree(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/disabled_users_outbound_firstRights.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of Disabled Users with First Degree Outbound Rights: disabled_users_outbound_firstRights ("+entries+") lines")
+    print("[+] Generating Disabled Users with First Degree Outbound Rights: disabled_users_outbound_firstRights ("+entries+") lines")
 
 
 def get_passNotRequired(driver):
@@ -967,7 +967,7 @@ def get_allowedToAct(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/AllowedToAct.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of AD Objects AllowedToAct on another AD object ("+entries+") lines")
+    print("[+] Generating AD Objects AllowedToAct on another AD object ("+entries+") lines")
 
 
 def get_writeAccountRestrictions(driver):
@@ -982,7 +982,7 @@ def get_writeAccountRestrictions(driver):
 
     with open(config['bloodhound']['OUTPUT_DIR'] + "/WriteAccountRestrictions.txt", "r") as fp:
         entries = str(len(fp.readlines()))
-    print("[+] Generating List of AD objects with WriteAccountRestrictions on another AD object ("+entries+") lines")
+    print("[+] Generating AD objects with WriteAccountRestrictions on another AD object ("+entries+") lines")
 
 
 
