@@ -70,10 +70,10 @@ def get_sessionCount(driver):
 # Query to print number of Users
 # MATCH (u:User) return count(u)
 def get_users(driver):
-    result = do_query(driver, "MATCH (u:User) return count(u.name)")
+    result = do_query(driver, "MATCH (u:User) return count(u)")
     for record in result:
-        if record["count(u.name)"]:
-            count=record["count(u.name)"]
+        if record["count(u)"]:
+            count=record["count(u)"]
         else:
             count="0"
 
