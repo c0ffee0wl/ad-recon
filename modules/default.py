@@ -35,7 +35,7 @@ def default_queries(driver):
     query.get_groupDelUserDCOM(driver)
     query.get_firstDegreeGroupDCOM(driver)
     query.get_passNeverExpire(driver)
-    query.get_disabledOutboundRights_irstDegree(driver)
+    query.get_disabledOutboundRights_firstDegree(driver)
     query.get_passNotRequired(driver)
     query.get_allowedToAct(driver)
     query.get_writeAccountRestrictions(driver)
