@@ -7,5 +7,5 @@ def transitive_queries(driver):
     query.get_startingPoints(driver)
     query.get_computerOutboundRights_trans(driver)
     query.get_userOutboundRights_trans(driver)
-    #query.get_disabledUserOutboundRights_trans(driver)
+    query.get_disabledUserOutboundRights_trans(driver)
     query.get_userinboundRights_trans(driver)

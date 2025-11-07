@@ -2,9 +2,7 @@ from modules import query
 import time
 
 def default_queries(driver):
-    #start_time = time.time()
     query.get_domains(driver)
-    #print('Time taken: {:0.2f}s'.format(time.time() - start_time))
     query.get_DCs(driver)
     query.get_computers(driver)
     query.get_sessionCount(driver)

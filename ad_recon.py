@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # External dependcies 
 import time, sys, argparse, os
+from neo4j import GraphDatabase
 
 # Internal Modules
 from modules import settings, db, default, dump, help, pathing, query, transitive
@@ -65,7 +66,10 @@ if __name__ == "__main__":
 
     # Setup driver connection
     AUTH = (config['bloodhound']['USERNAME'], config['bloodhound']['PASSWORD'])
-    driver = db.db_connect(config['bloodhound']['URI'], AUTH)
+    URI = (config['bloodhound']['URI'])
+    #driver = db.db_connect(config['bloodhound']['URI'], AUTH) 
+    driver = GraphDatabase.driver(URI, auth=AUTH)
+    driver.verify_connectivity()
 
     # If a single query is defined, execute, otherwise run the default queries
     if args['query']:
@@ -74,7 +78,10 @@ if __name__ == "__main__":
         
         if singleQuery in queries:
             q = getattr(query, singleQuery)
+            start_time = time.time()
+            print(f"Starting")
             q(driver)
+            print(f"{time.time() - start_time} seconds")
         else:
             print("Invalid query!")
             help.listQueries()

@@ -6,12 +6,13 @@ import itertools, sys, toml
 config = toml.load('config.toml')
 
 def do_query(driver, query):
-    global config
-    config = toml.load('config.toml')
+    local_config = config
+    #config = toml.load('config.toml')
     records, _, _ = driver.execute_query(
         query,
-        database = config['bloodhound']['DATABASE'] ,
-        routing_=RoutingControl.READ,
+        database = local_config['bloodhound']['DATABASE'] ,
+        #routing_=RoutingControl.READ,
+        routing_='r',
     )
     return records
 
@@ -148,9 +149,7 @@ def get_daSessions(driver):
 
     das_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/da_sessions.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Domain Admin Sessions: da_sessions.txt ("+entries+") lines")
+    print("[+] Generating Domain Admin Sessions: da_sessions.txt ("+str(len(result))+") lines")
 
 
 # Generate a file with all the owners of the the computer objects within current dataset
@@ -166,9 +165,7 @@ def get_compOwners(driver):
             owner_file.write("User: "+user_name+" owns: "+computer_name+"\n")
     owner_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/comp_owners.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Owners for the Computers in AD: comp_owners.txt ("+entries+") lines")
+    print("[+] Generating Owners for the Computers in AD: comp_owners.txt ("+str(len(result))+") lines")
 
 
 
@@ -176,7 +173,7 @@ def get_compOwners(driver):
 # MATCH (c:Computer)-[:HasSession]->(u:User) return c.name, u.name
 def get_sessions(driver):
     result = do_query(driver, "MATCH (c:Computer)-[:HasSession]->(u:User) return c.name, u.name")
-    session_file=open(config['bloodhound']['OUTPUT_DIR'] + "/sessions_all.txt", "w")
+    session_file=open(config['bloodhound']['OUTPUT_DIR'] + "/sessions_all.txt", "w+")
     for record in result:
         if record["u.name"]:
             user_name=record["u.name"]
@@ -189,9 +186,7 @@ def get_sessions(driver):
         session_file.write("[*] Computer: "+computer_name+" has session from user: "+user_name+"\n")
     session_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/sessions_all.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating all Sessions: sessions_all.txt ("+entries+") lines")
+    print("[+] Generating all Sessions: sessions_all.txt ("+str(len(result))+") lines")
 
 
 # Generate file with all users that have local admin rights:
@@ -211,9 +206,7 @@ def get_localAdmins(driver):
         localadmins_file.write("[*] User: "+user_name+" has local admin rights to: "+computer_name+"\n")
     localadmins_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/users_localadmins.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating users with local admin rights: users_localadmins.txt ("+entries+") lines")
+    print("[+] Generating users with local admin rights: users_localadmins.txt ("+str(len(result))+") lines")
 
 
 
@@ -236,9 +229,7 @@ def get_certTempNotAdmin(driver):
         count=line[1]
         cert_file.write(str(certtemp)+"\t"+str(count)+" inbound rights"+"\n")
     cert_file.close()
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/vuln_certs.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Certificate Templates Where Interesting Principals Can Modify (Not DA|EA|DC|Administrators) - Investigate these inbound rights: vuln_certs.txt ("+entries+") lines")
+    print("[+] Generating Certificate Templates Where Interesting Principals Can Modify (Not DA|EA|DC|Administrators) - Investigate these inbound rights: vuln_certs.txt ("+str(len(result))+") lines")
 
 
 # Multiple stage query to generate a list of certificate templates and list of principals with enroll rights > cert_enroll_permissions.txt
@@ -263,9 +254,7 @@ def get_certEnroll(driver):
         cert_enroll.write("[+] Certificate Template: "+cert+" \t Enroll Permissions: "+", ".join(principals).strip(",")+"\n")
     cert_enroll.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/cert_enroll_permissions.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Certificate Templates and Principals with Enroll Rights: cert_enroll_permissions.txt ("+entries+") lines")
+    print("[+] Generating Certificate Templates and Principals with Enroll Rights: cert_enroll_permissions.txt ("+str(len(result))+") lines")
 
 
 # Generate file with users and descriptions: user_descriptions.txt
@@ -290,9 +279,7 @@ def get_userDesc(driver):
             userdesc_file.write(user_name+"\n")
     userdesc_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/user_descriptions.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Users + Descriptions: user_descriptions.txt ("+entries+") lines")
+    print("[+] Generating Users + Descriptions: user_descriptions.txt ("+str(len(result))+") lines")
 
 
 
@@ -318,9 +305,7 @@ def get_compDesc(driver):
             comp_file.write(comp_name+"\n")
     comp_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/computer_descriptions.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Computers + Descriptions: computer_descriptions.txt ("+entries+") lines")
+    print("[+] Generating Computers + Descriptions: computer_descriptions.txt ("+str(len(result))+") lines")
 
 
 # Generate a file with the top 100 oldest computers that have authenticated to the domain within the last 30 days. This is useful for finding the oldest systems connected to AD as they likely have less controls (maybe missing EDR or logging) good spot for persistence
@@ -355,10 +340,7 @@ def get_oldComps(driver):
 
     compold_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/top100_oldest_computers.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating the top 100 oldest computers that have recently authenticated to the domain (last 30 days) maybe lower security controls - top100_oldest_computers.txt ("+entries+") lines")
-
+    print("[+] Generating the top 100 oldest computers that have recently authenticated to the domain (last 30 days) maybe lower security controls - top100_oldest_computers.txt ("+str(len(result))+") lines")
 
 
 # Generate file with groups and descriptions: group_descriptions.txt
@@ -383,10 +365,7 @@ def get_groupDesc(driver):
             group_file.write(group_name+"\n")
     group_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/group_descriptions.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Groups + Descriptions: group_descriptions.txt ("+entries+") lines")
-
+    print("[+] Generating Groups + Descriptions: group_descriptions.txt ("+str(len(result))+") lines")
 
 
 # Generate file with computers who have SPN records set who have recently authenticated to the domain (last 60 days)
@@ -411,16 +390,14 @@ def get_compSPNs(driver):
             spn_file.write(comp_name+"\n")
     spn_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/computer_spns.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Computer SPNs connected to AD last 60 days - useful for identifying servers + service offered: computer_spns.txt ("+entries+") lines")
+    print("[+] Generating Computer SPNs connected to AD last 60 days - useful for identifying servers + service offered: computer_spns.txt ("+str(len(result))+") lines")
 
 
 # Generate a file with Groups + Descriptions where they have an 'admincount: true}: admin_groups.txt
 # MATCH (u:Group {admincount: true}) return u.name
 def get_adminGroups(driver):
     result = do_query(driver, "MATCH (u:Group {admincount: true}) return u.name, u.description")
-    group_file=open(config['bloodhound']['OUTPUT_DIR'] + "/admin_groups.txt", "w")
+    group_file=open(config['bloodhound']['OUTPUT_DIR'] + "/admin_groups.txt", "w+")
     for record in result:
         if record["u.name"]:
             group_name=record["u.name"]
@@ -438,9 +415,7 @@ def get_adminGroups(driver):
             group_file.write(group_name+"\n")
     group_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/admin_groups.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Admin Groups (admincount: true): admin_groups.txt ("+entries+") lines")
+    print("[+] Generating Admin Groups (admincount: true): admin_groups.txt ("+str(len(result))+") lines")
 
 
 
@@ -466,9 +441,7 @@ def get_adminUsers(driver):
             userdesc_file.write(user_name+"\n")
     userdesc_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/admin_users.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Admin Users (admincount: true): admin_users.txt ("+entries+") lines")
+    print("[+] Generating Admin Users (admincount: true): admin_users.txt ("+str(len(result))+") lines")
 
 
 # Generate a file with a list of users who have extensive rights (DCSync|AllExtendedRights|GenericAll) within the domain and are admincount=false: dcsync-notadmin_domain.txt
@@ -490,9 +463,7 @@ def get_dcsync(driver):
                 dcsync_file.write("None"+"\n")
         dcsync_file.close()
 
-        with open(config['bloodhound']['OUTPUT_DIR'] + "/dcsync-notadmin_"+domain+".txt", "r") as fp:
-            entries = str(len(fp.readlines()))
-        print("[+] Generating Users with Admincount=false and DCSync|AllExtendedRights|GenericAll -> these are very likely problems: dcsync-notadmin_"+domain+".txt ("+entries+") lines")
+        print("[+] Generating Users with Admincount=false and DCSync|AllExtendedRights|GenericAll -> these are very likely problems: dcsync-notadmin_"+domain+".txt ("+str(len(result))+") lines")
 
 # Generate a file with Enabled Users who have SPN records set: kerberoastable.txt
 # MATCH (u:User {enabled: true}) WHERE u.hasspn=true RETURN u.name
@@ -507,9 +478,7 @@ def get_kerbUsers(driver):
         kerb_file.write(user_name+"\n")
     kerb_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/kerberoastable.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Enabled Users with SPN Records (Kerberoastable): kerberoastable.txt ("+entries+") lines")
+    print("[+] Generating Enabled Users with SPN Records (Kerberoastable): kerberoastable.txt ("+str(len(result))+") lines")
 
 
 # Generate a file with Enabled Users who have {dontreqpreauth: true} : asprep_roast.txt
@@ -525,9 +494,7 @@ def get_asprepRoast(driver):
         asp_file.write(user_name+"\n")
     asp_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/asprep_roast.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Users with DontReqPreAuth enabled (ASP-REP Roastable its not likely you'll see this): asprep_roast.txt ("+entries+") lines")
+    print("[+] Generating Users with DontReqPreAuth enabled (ASP-REP Roastable its not likely you'll see this): asprep_roast.txt ("+str(len(result))+") lines")
 
 
 
@@ -544,9 +511,7 @@ def get_unconstrainedDel(driver):
         uncon_file.write(uncon_name+"\n")
     uncon_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/unconstrained_delegation.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating objects with unconstrained delegation (should really only be DCs): unconstrained_delegation.txt ("+entries+") lines")
+    print("[+] Generating objects with unconstrained delegation (should really only be DCs): unconstrained_delegation.txt ("+str(len(result))+") lines")
 
 
 # Generate a list of enabled users with passwordlastset value greater than 365 days: enabled_users_passwordlastset_1yr.txt
@@ -566,9 +531,7 @@ ORDER BY days_since_pwdlastset DESC'''
         pwd_file.write(name+", "+str(days_since_pwlastset)+", "+str(pwdlastset)+"\n")
     pwd_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/enabled_users_passwordlastset_1yr.txt", "r") as fp:
-        entries = str(len(fp.readlines())) 
-    print("[+] Generating enabled users with passwordlastset value greater than 365 days: enabled_users_passwordlastset_1yr.txt ("+entries+") lines")
+    print("[+] Generating enabled users with passwordlastset value greater than 365 days: enabled_users_passwordlastset_1yr.txt ("+str(len(result))+") lines")
 
 
 # Generate a list of enabled Users who have never logged on: enabledacct_never_loggedon.txt"
@@ -584,9 +547,7 @@ def get_userNoLogon(driver):
         user_file.write(user_name+"\n")
     user_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/enabledacct_never_loggedon.txt", "r") as fp:
-        entries = str(len(fp.readlines())) 
-    print("[+] Generating Enabled Users who have never logged on: enabledacct_never_loggedon.txt ("+entries+") lines")
+    print("[+] Generating Enabled Users who have never logged on: enabledacct_never_loggedon.txt ("+str(len(result))+") lines")
 
 # MATCH p = (d:Domain)-[r:Contains*1..]->(c:Computer) WHERE c.haslaps = false AND c.enabled = true AND c.operatingsystem CONTAINS "Win" RETURN c.name, c.description, c.operatingsystem
 # Query to get computers with LAPS disabled: computers_laps_disabled.txt
@@ -612,15 +573,13 @@ def get_computersNoLAPS(driver):
             comp_file.write(comp_name+"\n")
     comp_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/computers_laps_disabled.txt", "r") as fp:
-        entries = str(len(fp.readlines()))   
-    print("[+] Generating Computers with LAPS Disabled: computers_laps_disabled.txt ("+entries+") lines")
-
+    print("[+] Generating Computers with LAPS Disabled: computers_laps_disabled.txt ("+str(len(result))+") lines")
 
 
 # Get 1st degree DCOM Privs
 # MATCH p=(m:User {objectid: "OBJECT_ID"})-[r:ExecuteDCOM]->(n:Computer) RETURN p
 def get_firstDegreeUserDCOM(driver):
+    start_time = time.time()
     result = do_query(driver, "MATCH (m:User) where m.name is not null return m.name, m.objectid")
     dcom_file=open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_user_dcom_rights.txt", "w")
     for record in result:
@@ -633,11 +592,28 @@ def get_firstDegreeUserDCOM(driver):
                     dcom_rights=str(record1["count(p)"])
                     dcom_file.write("[-] User: "+user_name+" DCOM rights: "+dcom_rights+"\n")
     dcom_file.close()
+    print(f"firstDegreeUserDCOM too {time.time() - start_time} seconds")
+    print("[+] Generating Users first degree DCOM rights: firstdegree_user_dcom_rights.txt ("+str(len(result))+") lines")
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_user_dcom_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Users first degree DCOM rights: firstdegree_user_dcom_rights.txt ("+entries+") lines")
-
+def get_firstDegreeUserDCOM_nested(driver):
+    start_time = time.time()
+    result = do_query(driver, "MATCH (m:User) where m.name is not null return m.name, m.objectid")
+    dcom_file=open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_user_dcom_rights.txt", "w")
+    def query(tx):
+        for record in result:
+            if record["m.name"]:
+                user_name = record["m.name"]
+                objectid = record["m.objectid"]
+                result1 = tx.run("MATCH p=(m:User {objectid: '"+objectid+"'})-[r:ExecuteDCOM]->(n:Computer) RETURN count(p)")
+                for record1 in result1:
+                    if record1["count(p)"]:
+                        dcom_rights=str(record1["count(p)"])
+                        dcom_file.write("[-] User: "+user_name+" DCOM rights: "+dcom_rights+"\n")
+    with driver.session(database='neo4j') as session:
+        result1 = session.execute_read(query)
+    dcom_file.close()
+    print(f"firstDegreeUserDCOM_nested too {time.time() - start_time} seconds")
+    print("[+] Generating Users first degree DCOM rights: firstdegree_user_dcom_rights.txt ("+str(len(result))+") lines")
 
 # Get group delegated DCOM Privs
 # MATCH p=(m:User {objectid: "S-1-5-21-3031697400-3124200660-2978427-16364"})-[r1:MemberOf*1..]->(g:Group)-[r2:ExecuteDCOM]->(n:Computer) RETURN p
@@ -655,9 +631,7 @@ def get_groupDelUserDCOM(driver):
                     dcom_file.write("[-] User: "+user_name+" group del DCOM rights: "+dcom_rights+"\n")
     dcom_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/groupdel_user_dcom_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Users group delegated DCOM rights: groupdel_user_dcom_rights.txt ("+entries+") lines")
+    print("[+] Generating Users group delegated DCOM rights: groupdel_user_dcom_rights.txt ("+str(len(result))+") lines")
 
 
 # Get 1st degree Group DCOM Privs
@@ -676,11 +650,7 @@ def get_firstDegreeGroupDCOM(driver):
                     dcom_file.write("[-] Group: "+user_name+" DCOM rights: "+dcom_rights+"\n")
     dcom_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_group_dcom_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Groups first degree DCOM rights: firstdegree_group_dcom_rights.txt ("+entries+") lines")
-
-
+    print("[+] Generating Groups first degree DCOM rights: firstdegree_group_dcom_rights.txt ("+str(len(result))+") lines")
 
 
 ### This function is only invoked if `--pathing` is selected on the CLI due to the time it takes to run
@@ -701,9 +671,7 @@ def get_hvtRights(driver):
                     hvt_file.write("[-] HVT: "+hvt_name+" inbound rights: "+inbound_rights+"\n")
     hvt_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/hvt_inbound_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating High Value Targets (HVT) and inbound rights: hvt_inbound_rights.txt ("+entries+") lines")
+    print("[+] Generating High Value Targets (HVT) and inbound rights: hvt_inbound_rights.txt ("+str(len(result))+") lines")
 
 
 
@@ -734,9 +702,7 @@ def get_gpoRights(driver):
 
     gpo_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/gpo_inbound_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))   
-    print("[+] Generating GPOs and inbound rights (Total GPOs: "+count+" this will take a bit ~5-10secs per GPO): gpo_inbound_rights.txt ("+entries+") lines")
+    print("[+] Generating GPOs and inbound rights (Total GPOs: "+count+" this will take a bit ~5-10secs per GPO): gpo_inbound_rights.txt ("+str(len(result))+") lines")
 
 
 # Multiple query to get the transitive outbound rights for a set of groups defined as "starter_groups" list below
@@ -771,9 +737,8 @@ def get_startingPoints(driver):
 
     starter_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/common_groups_outboundrights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating common groups and their transitive outbound rights - investigate for anomalies: common_groups_outboundrights.txt ("+entries+") lines")
+    print("[+] Generating common groups and their transitive outbound rights - investigate for anomalies: common_groups_outboundrights.txt ("+str(len(result))+") lines")
+
 
 
 def get_serverRDP(driver):
@@ -790,12 +755,30 @@ def get_serverRDP(driver):
                     server_rdp_file.write("[-] Server: "+server_name+" First Degree RDP Users: "+rdp_rights+"\n")
     server_rdp_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/server_RDP.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Servers with First Degree RDP Rights: server_RDP.txt ("+entries+") lines")
-
+    print("[+] Generating Servers with First Degree RDP Rights: server_RDP.txt ("+str(len(result))+") lines")
 
 def get_userOutboundRights_firstdegree(driver):
+    result = do_query(driver, "MATCH (m:User) return m.name, m.objectid")
+    user_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/users_outbound_1st_rights.txt", "w")
+    def query(tx):
+        for record in result:
+            if record["m.name"]:
+                username = record["m.name"]
+                objectid = record["m.objectid"]
+                tx.run("MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
+    #        result1 = do_query(driver, "MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
+    #        for record1 in result1:
+    #            if record1["count(p)"]:
+    #                firstdegree_rights=str(record1["count(p)"])
+    #                user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+"\n")
+    with driver.session(database='neo4j') as session:
+        result1 = session.execute_read(query)
+    user_outbound_file.close()
+
+    print("[+] Generating Users with First Degree Outbound Rights: users_outbound_1st_rights.txt ("+str(len(result))+") lines")
+
+
+def get_userOutboundRights_firstdegree_nestedTest(driver):
     result = do_query(driver, "MATCH (m:User) return m.name, m.objectid")
     user_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/users_outbound_1st_rights.txt", "w")
     for record in result:
@@ -809,12 +792,32 @@ def get_userOutboundRights_firstdegree(driver):
                     user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+"\n")
     user_outbound_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/users_outbound_1st_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Users with First Degree Outbound Rights: users_outbound_1st_rights.txt ("+entries+") lines")
+    print("[+] Generating Users with First Degree Outbound Rights: users_outbound_1st_rights.txt ("+str(len(result))+") lines")
 
 
+import time
 def get_serverAdminGroup(driver):
+    start_time = time.time()
+    result = do_query(driver, "MATCH (m:Group) return m.name, m.objectid")
+    server_admin_file=open(config['bloodhound']['OUTPUT_DIR'] + "/server_admin_bygroup.txt", "w")
+    def query(tx):
+        for record in result:
+            if record["m.name"]:
+                group_name = record["m.name"]
+                objectid = record["m.objectid"]
+                result1 = tx.run("MATCH p = (g1:Group {objectid: '"+objectid+"'})-[r2:AdminTo]->(n:Computer) RETURN count(p)")
+            #result1 = do_query(driver, "MATCH p = (g1:Group {objectid: '"+objectid+"'})-[r2:AdminTo]->(n:Computer) RETURN count(p)")
+                for record1 in result1:
+                    if record1["count(p)"]:
+                        admin_rights=str(record1["count(p)"])
+                        server_admin_file.write("[-] Group: "+group_name+" First Degree Admin Rights: "+admin_rights+"\n")
+    
+    with driver.session(database='neo4j') as session:
+        result1 = session.execute_read(query)
+    server_admin_file.close()
+    print("[+] Generating Groups with First Degree Admin Rights: server_admin_bygroup.txt ("+str(len(result))+") lines")
+
+def get_serverAdminGroup_eager(driver):
     result = do_query(driver, "MATCH (m:Group) return m.name, m.objectid")
     server_admin_file=open(config['bloodhound']['OUTPUT_DIR'] + "/server_admin_bygroup.txt", "w")
     for record in result:
@@ -826,11 +829,9 @@ def get_serverAdminGroup(driver):
                 if record1["count(p)"]:
                     admin_rights=str(record1["count(p)"])
                     server_admin_file.write("[-] Group: "+group_name+" First Degree Admin Rights: "+admin_rights+"\n")
+    
     server_admin_file.close()
-
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/server_admin_bygroup.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Groups with First Degree Admin Rights: server_admin_bygroup.txt ("+entries+") lines")
+    print("[+] Generating Groups with First Degree Admin Rights: server_admin_bygroup.txt ("+str(len(result))+") lines")
 
 
 def get_userOutboundRights_trans(driver):
@@ -847,10 +848,7 @@ def get_userOutboundRights_trans(driver):
                     user_outbound_file.write("[-] User: "+username+" Transitive Outbound Rights: "+trans_rights+"\n")
     user_outbound_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/users_outbound_trans_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Users with Transitive Outbound Rights: users_outbound_trans_rights.txt ("+entries+") lines")
-
+    print("[+] Generating Users with Transitive Outbound Rights: users_outbound_trans_rights.txt ("+str(len(result))+") lines")
 
 
 
@@ -868,9 +866,7 @@ def get_userinboundRights_trans(driver):
                     user_inbound_file.write("[-] User: "+username+" Transitive Inbound Rights: "+trans_rights+"\n")
     user_inbound_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/users_inbound_trans_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Users with Transitive Inbound Rights: users_inbound_trans_rights.txt ("+entries+") lines")
+    print("[+] Generating Users with Transitive Inbound Rights: users_inbound_trans_rights.txt ("+str(len(result))+") lines")
 
 
 
@@ -888,10 +884,58 @@ def get_computerOutboundRights_trans(driver):
                     comp_outbound_file.write("[-] Computer: "+comp_name+" Transitive Outbound Rights: "+trans_rights+"\n")
     comp_outbound_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+entries+") lines")
+    print("[+] Generating Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+str(len(result))+") lines")
 
+
+def get_computerOutboundRights_trans_nested(driver):
+    result = do_query(driver, "MATCH (m:Computer) return m.name, m.objectid")
+    comp_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "w")
+    def query(tx):
+        for record in result:
+            if record["m.name"]:
+                comp_name = record["m.name"]
+                objectid = record["m.objectid"]
+                result1 = tx.run("MATCH (n) WHERE NOT n.objectid='"+objectid+"' MATCH p=shortestPath((u:Computer {objectid: '"+objectid+"'})-[r1:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n)) RETURN count(p)")
+                #result1 = do_query(driver, "MATCH (n) WHERE NOT n.objectid='"+objectid+"' MATCH p=shortestPath((u:Computer {objectid: '"+objectid+"'})-[r1:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n)) RETURN count(p)")
+                for record1 in result1:
+                    if record1["count(p)"]:
+                        trans_rights=str(record1["count(p)"])
+                        comp_outbound_file.write("[-] Computer: "+comp_name+" Transitive Outbound Rights: "+trans_rights+"\n")
+    
+    with driver.session(database='neo4j') as session:
+        result1 = session.execute_read(query)
+    comp_outbound_file.close()
+
+    print("[+] Generating Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+str(len(result))+") lines")
+
+def get_computerOutboundRights_trans_nested_more(driver):
+    comp_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "w")
+    def query(tx):
+        start_time = time.time()
+        print("step 1")
+        result = tx.run("MATCH (m:Computer) return m.name, m.objectid")
+        #result = do_query(driver, "MATCH (m:Computer) return m.name, m.objectid")
+        #comp_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "w")
+        print(f"step 2: {time.time() - start_time} seconds")
+        count = 2
+        for record in result:
+            count += 1 
+            print(f"Step {str(count)}: {time.time() - start_time} seconds")
+            if record["m.name"]:
+                comp_name = record["m.name"]
+                objectid = record["m.objectid"]
+                result1 = tx.run("MATCH (n) WHERE NOT n.objectid='"+objectid+"' MATCH p=shortestPath((u:Computer {objectid: '"+objectid+"'})-[r1:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n)) RETURN count(p)")
+                #result1 = do_query(driver, "MATCH (n) WHERE NOT n.objectid='"+objectid+"' MATCH p=shortestPath((u:Computer {objectid: '"+objectid+"'})-[r1:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n)) RETURN count(p)")
+                for record1 in result1:
+                    if record1["count(p)"]:
+                        trans_rights=str(record1["count(p)"])
+                        comp_outbound_file.write("[-] Computer: "+comp_name+" Transitive Outbound Rights: "+trans_rights+"\n")
+    
+    with driver.session(database='neo4j') as session:
+        result1 = session.execute_read(query)
+    comp_outbound_file.close()
+
+    print("[+] Generating Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+str(len(result))+") lines")
 
 def get_passNeverExpire(driver):
     result = do_query(driver, "MATCH (u:User {enabled: true}) WHERE u.pwdneverexpires=True return u.name, u.pwdneverexpires, datetime({ epochSeconds:toInteger(u.pwdlastset)}) as pwdlast ORDER BY pwdlast")
@@ -915,12 +959,10 @@ def get_passNeverExpire(driver):
             userdesc_file.write(user_name+"\n")
     userdesc_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/user_enabled_passNeverExpires.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Enabled Users With Paswords That Never Expire: user_enabled_passNeverExpires.txt ("+entries+") lines")
+    print("[+] Generating Enabled Users With Paswords That Never Expire: user_enabled_passNeverExpires.txt ("+str(len(result))+") lines")
 
 
-def get_disabledOutboundRights_firstDegree(driver):
+def get_disabledOutboundRights_firstDegree_old(driver):
     result = do_query(driver, "MATCH (m:User {enabled: false}) return m.name, m.objectid, m.admincount")
     user_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/disabled_users_outbound_firstRights.txt", "w")
     for record in result:
@@ -935,10 +977,28 @@ def get_disabledOutboundRights_firstDegree(driver):
                     user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+" Admincount: "+str(admincount)+"\n")
     user_outbound_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/disabled_users_outbound_firstRights.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Disabled Users with First Degree Outbound Rights: disabled_users_outbound_firstRights ("+entries+") lines")
+    print("[+] Generating Disabled Users with First Degree Outbound Rights: disabled_users_outbound_firstRights ("+str(len(result))+") lines")
 
+def get_disabledOutboundRights_firstDegree(driver):
+    result = do_query(driver, "MATCH (m:User {enabled: false}) return m.name, m.objectid, m.admincount")
+    user_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/disabled_users_outbound_firstRights.txt", "w")
+    def query(tx):
+        for record in result:
+            if record["m.name"]:
+                username=record["m.name"]
+                objectid=record["m.objectid"]
+                admincount=record["m.admincount"]
+                result_outbound = tx.run("MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
+                #result_outbound = do_query(driver, "MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
+                for record_outbound in result_outbound:
+                    if record_outbound["count(p)"]:
+                        firstdegree_rights = str(record_outbound["count(p)"])
+                        user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+" Admincount: "+str(admincount)+"\n")
+    with driver.session(database='neo4j') as session:
+        result1 = session.execute_read(query)
+
+    user_outbound_file.close()
+    print("[+] Generating Disabled Users with First Degree Outbound Rights: disabled_users_outbound_firstRights ("+str(len(result))+") lines")
 
 def get_passNotRequired(driver):
     result = do_query(driver, "MATCH (u:User {passwordnotreqd: true, enabled: true}) return u.name")
@@ -951,9 +1011,7 @@ def get_passNotRequired(driver):
         pass_file.write(user_name+"\n")
     pass_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/users-enabled-PassNotReqd.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating Enabled Users with PasswordNotReqd True: users-enabled-PassNotReqd.txt("+entries+") lines")
+    print("[+] Generating Enabled Users with PasswordNotReqd True: users-enabled-PassNotReqd.txt("+str(len(result))+") lines")
 
 
 def get_allowedToAct(driver):
@@ -966,9 +1024,7 @@ def get_allowedToAct(driver):
             das_file.write["[*] "+user_name+" has AllowedToAct over "+computer_name+"\n"]
     das_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/AllowedToAct.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating AD Objects AllowedToAct on another AD object ("+entries+") lines")
+    print("[+] Generating AD Objects AllowedToAct on another AD object ("+str(len(result))+") lines")
 
 
 def get_writeAccountRestrictions(driver):
@@ -981,9 +1037,7 @@ def get_writeAccountRestrictions(driver):
             das_file.write("[*] "+user_name+" has WriteAccountRestirctions over "+computer_name+"\n")
     das_file.close()
 
-    with open(config['bloodhound']['OUTPUT_DIR'] + "/WriteAccountRestrictions.txt", "r") as fp:
-        entries = str(len(fp.readlines()))
-    print("[+] Generating AD objects with WriteAccountRestrictions on another AD object ("+entries+") lines")
+    print("[+] Generating AD objects with WriteAccountRestrictions on another AD object ("+str(len(result))+") lines")
 
 
 
