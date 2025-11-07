@@ -578,8 +578,7 @@ def get_computersNoLAPS(driver):
 
 # Get 1st degree DCOM Privs
 # MATCH p=(m:User {objectid: "OBJECT_ID"})-[r:ExecuteDCOM]->(n:Computer) RETURN p
-def get_firstDegreeUserDCOM(driver):
-    start_time = time.time()
+def get_firstDegreeUserDCOM_old(driver):
     result = do_query(driver, "MATCH (m:User) where m.name is not null return m.name, m.objectid")
     dcom_file=open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_user_dcom_rights.txt", "w")
     for record in result:
@@ -592,11 +591,9 @@ def get_firstDegreeUserDCOM(driver):
                     dcom_rights=str(record1["count(p)"])
                     dcom_file.write("[-] User: "+user_name+" DCOM rights: "+dcom_rights+"\n")
     dcom_file.close()
-    print(f"firstDegreeUserDCOM too {time.time() - start_time} seconds")
     print("[+] Generating Users first degree DCOM rights: firstdegree_user_dcom_rights.txt ("+str(len(result))+") lines")
 
-def get_firstDegreeUserDCOM_nested(driver):
-    start_time = time.time()
+def get_firstDegreeUserDCOM(driver):
     result = do_query(driver, "MATCH (m:User) where m.name is not null return m.name, m.objectid")
     dcom_file=open(config['bloodhound']['OUTPUT_DIR'] + "/firstdegree_user_dcom_rights.txt", "w")
     def query(tx):
@@ -612,7 +609,6 @@ def get_firstDegreeUserDCOM_nested(driver):
     with driver.session(database='neo4j') as session:
         result1 = session.execute_read(query)
     dcom_file.close()
-    print(f"firstDegreeUserDCOM_nested too {time.time() - start_time} seconds")
     print("[+] Generating Users first degree DCOM rights: firstdegree_user_dcom_rights.txt ("+str(len(result))+") lines")
 
 # Get group delegated DCOM Privs
@@ -765,12 +761,12 @@ def get_userOutboundRights_firstdegree(driver):
             if record["m.name"]:
                 username = record["m.name"]
                 objectid = record["m.objectid"]
-                tx.run("MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
+                result1 = tx.run("MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
     #        result1 = do_query(driver, "MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
-    #        for record1 in result1:
-    #            if record1["count(p)"]:
-    #                firstdegree_rights=str(record1["count(p)"])
-    #                user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+"\n")
+                for record1 in result1:
+                    if record1["count(p)"]:
+                        firstdegree_rights=str(record1["count(p)"])
+                        user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+"\n")
     with driver.session(database='neo4j') as session:
         result1 = session.execute_read(query)
     user_outbound_file.close()
@@ -778,7 +774,7 @@ def get_userOutboundRights_firstdegree(driver):
     print("[+] Generating Users with First Degree Outbound Rights: users_outbound_1st_rights.txt ("+str(len(result))+") lines")
 
 
-def get_userOutboundRights_firstdegree_nestedTest(driver):
+def get_userOutboundRights_firstdegree_old(driver):
     result = do_query(driver, "MATCH (m:User) return m.name, m.objectid")
     user_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/users_outbound_1st_rights.txt", "w")
     for record in result:
@@ -795,9 +791,7 @@ def get_userOutboundRights_firstdegree_nestedTest(driver):
     print("[+] Generating Users with First Degree Outbound Rights: users_outbound_1st_rights.txt ("+str(len(result))+") lines")
 
 
-import time
 def get_serverAdminGroup(driver):
-    start_time = time.time()
     result = do_query(driver, "MATCH (m:Group) return m.name, m.objectid")
     server_admin_file=open(config['bloodhound']['OUTPUT_DIR'] + "/server_admin_bygroup.txt", "w")
     def query(tx):
@@ -816,23 +810,6 @@ def get_serverAdminGroup(driver):
         result1 = session.execute_read(query)
     server_admin_file.close()
     print("[+] Generating Groups with First Degree Admin Rights: server_admin_bygroup.txt ("+str(len(result))+") lines")
-
-def get_serverAdminGroup_eager(driver):
-    result = do_query(driver, "MATCH (m:Group) return m.name, m.objectid")
-    server_admin_file=open(config['bloodhound']['OUTPUT_DIR'] + "/server_admin_bygroup.txt", "w")
-    for record in result:
-        if record["m.name"]:
-            group_name = record["m.name"]
-            objectid = record["m.objectid"]
-            result1 = do_query(driver, "MATCH p = (g1:Group {objectid: '"+objectid+"'})-[r2:AdminTo]->(n:Computer) RETURN count(p)")
-            for record1 in result1:
-                if record1["count(p)"]:
-                    admin_rights=str(record1["count(p)"])
-                    server_admin_file.write("[-] Group: "+group_name+" First Degree Admin Rights: "+admin_rights+"\n")
-    
-    server_admin_file.close()
-    print("[+] Generating Groups with First Degree Admin Rights: server_admin_bygroup.txt ("+str(len(result))+") lines")
-
 
 def get_userOutboundRights_trans(driver):
     result = do_query(driver, "MATCH (m:User) return m.name, m.objectid")
@@ -870,7 +847,7 @@ def get_userinboundRights_trans(driver):
 
 
 
-def get_computerOutboundRights_trans(driver):
+def get_computerOutboundRights_trans_old(driver):
     result = do_query(driver, "MATCH (m:Computer) return m.name, m.objectid")
     comp_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "w")
     for record in result:
@@ -887,40 +864,11 @@ def get_computerOutboundRights_trans(driver):
     print("[+] Generating Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+str(len(result))+") lines")
 
 
-def get_computerOutboundRights_trans_nested(driver):
+def get_computerOutboundRights_trans(driver):
     result = do_query(driver, "MATCH (m:Computer) return m.name, m.objectid")
     comp_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "w")
     def query(tx):
         for record in result:
-            if record["m.name"]:
-                comp_name = record["m.name"]
-                objectid = record["m.objectid"]
-                result1 = tx.run("MATCH (n) WHERE NOT n.objectid='"+objectid+"' MATCH p=shortestPath((u:Computer {objectid: '"+objectid+"'})-[r1:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n)) RETURN count(p)")
-                #result1 = do_query(driver, "MATCH (n) WHERE NOT n.objectid='"+objectid+"' MATCH p=shortestPath((u:Computer {objectid: '"+objectid+"'})-[r1:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n)) RETURN count(p)")
-                for record1 in result1:
-                    if record1["count(p)"]:
-                        trans_rights=str(record1["count(p)"])
-                        comp_outbound_file.write("[-] Computer: "+comp_name+" Transitive Outbound Rights: "+trans_rights+"\n")
-    
-    with driver.session(database='neo4j') as session:
-        result1 = session.execute_read(query)
-    comp_outbound_file.close()
-
-    print("[+] Generating Computers with Transitive Outbound Rights: comp_outbound_trans_rights.txt ("+str(len(result))+") lines")
-
-def get_computerOutboundRights_trans_nested_more(driver):
-    comp_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "w")
-    def query(tx):
-        start_time = time.time()
-        print("step 1")
-        result = tx.run("MATCH (m:Computer) return m.name, m.objectid")
-        #result = do_query(driver, "MATCH (m:Computer) return m.name, m.objectid")
-        #comp_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/comp_outbound_trans_rights.txt", "w")
-        print(f"step 2: {time.time() - start_time} seconds")
-        count = 2
-        for record in result:
-            count += 1 
-            print(f"Step {str(count)}: {time.time() - start_time} seconds")
             if record["m.name"]:
                 comp_name = record["m.name"]
                 objectid = record["m.objectid"]
