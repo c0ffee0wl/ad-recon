@@ -69,7 +69,12 @@ if __name__ == "__main__":
     URI = (config['bloodhound']['URI'])
     #driver = db.db_connect(config['bloodhound']['URI'], AUTH) 
     driver = GraphDatabase.driver(URI, auth=AUTH)
-    driver.verify_connectivity()
+    try:
+        driver.verify_connectivity()
+        print(f"Connected to {URI} successfully!")
+    except Exception as e:
+        print(f"Connection to {URI} failed...")
+        sys.exit(1)
 
     # If a single query is defined, execute, otherwise run the default queries
     if args['query']:
