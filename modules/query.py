@@ -988,9 +988,75 @@ def get_writeAccountRestrictions(driver):
     print("[+] Generating AD objects with WriteAccountRestrictions on another AD object ("+str(len(result))+") lines")
 
 
+def get_userPathToDA(driver):
+    da = do_query(driver, "MATCH (m:Group) where m.name contains 'DOMAIN ADMINS' return m.objectid")
+    for record in da:
+        if record["m.objectid"]:
+            da_sid=record["m.objectid"]
 
+    result = do_query(driver, "MATCH (m:User) return m.name, m.objectid, m.admincount")
+    user_da_file=open(config['bloodhound']['OUTPUT_DIR'] + "/users_with_path_to_DA.txt", "w+")
+    entries = 0
+    for record in result:
+        if record["m.name"]:
+            username = record["m.name"]
+            objectid = record["m.objectid"]
+            admincount = record["m.admincount"]
+            result1 = do_query(driver, "MATCH (n:User {objectid: '"+objectid+"'}) MATCH (m:Group {objectid: '"+da_sid+"'}) MATCH p=allShortestPaths((n)-[r:MemberOf|HasSession|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|CanRDP|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|WriteAccountRestrictions|SQLAdmin|ReadGMSAPassword|HasSIDHistory|CanPSRemote|SyncLAPSPassword|DumpSMSAPassword|AZMGGrantRole|AZMGAddSecret|AZMGAddOwner|AZMGAddMember|AZMGGrantAppRoles|AZNodeResourceGroup|AZWebsiteContributor|AZLogicAppContributo|AZAutomationContributor|AZAKSContributor|AZAddMembers|AZAddOwner|AZAddSecret|AZAvereContributor|AZContains|AZContributor|AZExecuteCommand|AZGetCertificates|AZGetKeys|AZGetSecrets|AZGlobalAdmin|AZHasRole|AZManagedIdentity|AZMemberOf|AZOwns|AZPrivilegedAuthAdmin|AZPrivilegedRoleAdmin|AZResetPassword|AZUserAccessAdministrator|AZAppAdmin|AZCloudAppAdmin|AZRunsAs|AZKeyVaultContributor|AZVMAdminLogin|AZVMContributor|AZLogicAppContributor|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync*1..]->(m)) RETURN count(p)")
+            for record1 in result1:
+                if record1["count(p)"]:
+                    da_path=str(record1["count(p)"])
+                    entries += 1
+                    user_da_file.write("[-] User: "+username+" DA Hop Count: "+da_path+" Admincount: "+str(admincount)+"\n")
+    
+    print("[+] Generating Users with paths to DA: users_with_path_to_DA.txt ("+str(entries)+") lines")
+    user_da_file.close()
 
+def get_computerPathToDA(driver):
+    da = do_query(driver, "MATCH (m:Group) where m.name contains 'DOMAIN ADMINS' return m.objectid")
+    for record in da:
+        if record["m.objectid"]:
+            da_sid=record["m.objectid"]
 
+    result = do_query(driver, "MATCH (m:Computer) return m.name, m.objectid")
+    comp_da_file=open(config['bloodhound']['OUTPUT_DIR'] + "/computers_with_path_to_DA.txt", "w")
+    entries = 0
+    for record in result:
+        if record["m.name"]:
+            username = record["m.name"]
+            objectid = record["m.objectid"]
+            result1 = do_query(driver, "MATCH (n:Computer {objectid: '"+objectid+"'}) MATCH (m:Group {objectid: '"+da_sid+"'}) MATCH p=allShortestPaths((n)-[r:MemberOf|HasSession|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|CanRDP|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|WriteAccountRestrictions|SQLAdmin|ReadGMSAPassword|HasSIDHistory|CanPSRemote|SyncLAPSPassword|DumpSMSAPassword|AZMGGrantRole|AZMGAddSecret|AZMGAddOwner|AZMGAddMember|AZMGGrantAppRoles|AZNodeResourceGroup|AZWebsiteContributor|AZLogicAppContributo|AZAutomationContributor|AZAKSContributor|AZAddMembers|AZAddOwner|AZAddSecret|AZAvereContributor|AZContains|AZContributor|AZExecuteCommand|AZGetCertificates|AZGetKeys|AZGetSecrets|AZGlobalAdmin|AZHasRole|AZManagedIdentity|AZMemberOf|AZOwns|AZPrivilegedAuthAdmin|AZPrivilegedRoleAdmin|AZResetPassword|AZUserAccessAdministrator|AZAppAdmin|AZCloudAppAdmin|AZRunsAs|AZKeyVaultContributor|AZVMAdminLogin|AZVMContributor|AZLogicAppContributor|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync*1..]->(m)) RETURN count(p)")
+            for record1 in result1:
+                if record1["count(p)"]:
+                    da_path = str(record1["count(p)"])
+                    entries += 1
+                    comp_da_file.write("[-] Computer: "+username+" DA Hop Count: "+da_path+"\n")
+    comp_da_file.close()
+    print("[Generating Computers with paths to DA: computers_with_path_to_DA.txt ("+str(entries)+") lines")
+
+def get_groupPathToDA(driver):
+    da = do_query(driver, "MATCH (m:Group) where m.name contains 'DOMAIN ADMINS' return m.objectid")
+    for record in da:
+        if record["m.objectid"]:
+            da_sid=record["m.objectid"]
+
+    result = do_query(driver, "MATCH (m:Group) return m.name, m.objectid, m.admincount")
+    group_da_file=open(config['bloodhound']['OUTPUT_DIR'] + "/groups_with_path_to_DA.txt", "w")
+    entries = 0
+    for record in result:
+        if record["m.name"]:
+            username = record["m.name"]
+            objectid = record["m.objectid"]
+            admincount = record["m.admincount"]
+            if objectid != da_sid:
+                result1 = do_query(driver, "MATCH (n:Group {objectid: '"+objectid+"'}) MATCH (m:Group {objectid: '"+da_sid+"'}) MATCH p=allShortestPaths((n)-[r:MemberOf|HasSession|AdminTo|AllExtendedRights|AddMember|ForceChangePassword|GenericAll|GenericWrite|Owns|WriteDacl|WriteOwner|CanRDP|ExecuteDCOM|AllowedToDelegate|ReadLAPSPassword|Contains|GPLink|AddAllowedToAct|AllowedToAct|WriteAccountRestrictions|SQLAdmin|ReadGMSAPassword|HasSIDHistory|CanPSRemote|SyncLAPSPassword|DumpSMSAPassword|AZMGGrantRole|AZMGAddSecret|AZMGAddOwner|AZMGAddMember|AZMGGrantAppRoles|AZNodeResourceGroup|AZWebsiteContributor|AZLogicAppContributo|AZAutomationContributor|AZAKSContributor|AZAddMembers|AZAddOwner|AZAddSecret|AZAvereContributor|AZContains|AZContributor|AZExecuteCommand|AZGetCertificates|AZGetKeys|AZGetSecrets|AZGlobalAdmin|AZHasRole|AZManagedIdentity|AZMemberOf|AZOwns|AZPrivilegedAuthAdmin|AZPrivilegedRoleAdmin|AZResetPassword|AZUserAccessAdministrator|AZAppAdmin|AZCloudAppAdmin|AZRunsAs|AZKeyVaultContributor|AZVMAdminLogin|AZVMContributor|AZLogicAppContributor|AddSelf|WriteSPN|AddKeyCredentialLink|DCSync*1..]->(m)) RETURN count(p)")
+                for record1 in result1:
+                    if record1["count(p)"]:
+                        da_path=str(record1["count(p)"])
+                        entries += 1
+                        group_da_file.write("[-] Group: "+username+" DA Hop Count: "+da_path+" Admincount: "+str(admincount)+"\n")
+    group_da_file.close()
+    print("[+] Generating Groups with paths to DA: groups_with_path_to_DA.txt ("+str(entries)+") lines")
 
 
 

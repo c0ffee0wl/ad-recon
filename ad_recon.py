@@ -73,6 +73,7 @@ if __name__ == "__main__":
         driver.verify_connectivity()
         print(f"Connected to {URI} successfully!")
     except Exception as e:
+        print(f"error: {e}")
         print(f"Connection to {URI} failed...")
         sys.exit(1)
 
@@ -83,10 +84,7 @@ if __name__ == "__main__":
         
         if singleQuery in queries:
             q = getattr(query, singleQuery)
-            start_time = time.time()
-            print(f"Starting")
             q(driver)
-            print(f"{time.time() - start_time} seconds")
         else:
             print("Invalid query!")
             help.listQueries()
