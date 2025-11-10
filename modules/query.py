@@ -969,7 +969,7 @@ def get_allowedToAct(driver):
         if record["n.name"]:
             user_name=record["n.name"]
             computer_name=record["g.name"]
-            das_file.write["[*] "+user_name+" has AllowedToAct over "+computer_name+"\n"]
+            das_file.write("[*] "+user_name+" has AllowedToAct over "+computer_name+"\n")
     das_file.close()
 
     print("[+] Generating AD Objects AllowedToAct on another AD object ("+str(len(result))+") lines")
