@@ -4,7 +4,7 @@ import time, sys, argparse, os
 from neo4j import GraphDatabase
 
 # Internal Modules
-from modules import settings, db, default, dump, help, pathing, query, transitive, hvt, owned
+from modules import settings, db, default, dump, help, pathing, query, transitive, hvt, owned, adminCount
 
 if __name__ == "__main__":
     # Setup arguments
@@ -17,6 +17,7 @@ if __name__ == "__main__":
     parser.add_argument('-T', '--transitive', help='Run transitive queries - takes even longer', required=False, action='store_true')  
     parser.add_argument("--hvt", help="Run High Value Target (HVT) Queries", required=False, action='store_true')
     parser.add_argument("--owned", help="Get owned users outbound transitive rights", required=False, action='store_true')
+    parser.add_argument("--adminCount", help="Get AdminCount False Users Outbound Transitive Rights", required=False, action='store_true')
     parser.add_argument('-D', '--dump', help='Dumps raw Cypher queries to more easily modify and use in BH/Neo4j. If selected no queries are performed', required=False, action='store_true')
     parser.add_argument('-H', '--moreHelp', help='Provides context into how to analyze the output files', required=False, action='store_true')
     parser.add_argument('-L', '--listQueries', help='List available queries', required=False, action='store_true')
@@ -110,6 +111,10 @@ if __name__ == "__main__":
     # Executes HVT queries if arg is passed
     if args['owned'] == True:
         owned.owned_queries(driver)
+    
+    # Executes AdminCountnt queries if arg is passed
+    if args['adminCount'] == True:
+        adminCount.adminCount_queries(driver)
     
     # Close driver connection
     driver.close()

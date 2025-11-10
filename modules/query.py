@@ -1092,3 +1092,23 @@ def get_ownedUserOutboundRights_firstDegree(driver):
                     user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+"\n")
     user_outbound_file.close()
     print("[*] Generating Owned Users with First Degree Outbound Rights: owned_users_outbound_1st_rights.txt ("+str(entries)+") lines")
+
+
+def get_adminCountFalseUsers_trans(driver):
+    result = do_query(driver, "MATCH (m:User {admincount: false}) return m.name, m.objectid, m.admincount")
+    disabled_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/admincount_false_outbound_trans_rights.txt", "w")
+    entries = 0
+    for record in result:
+        if record["m.name"]:
+            username = record["m.name"]
+            objectid = record["m.objectid"]
+            admincount= record["m.admincount"]
+            result1 = do_query(driver, "MATCH (n) WHERE NOT n.objectid='"+objectid+"' MATCH p=shortestPath((u:User {objectid: '"+objectid+"'})-[r1:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(n)) RETURN count(p)")
+            for record1 in result1:
+                if record1["count(p)"]:
+                    trans_rights=str(record1["count(p)"])
+                    entries += 1
+                    disabled_outbound_file.write("[-] User: "+username+" Transitive Outbound Rights: "+trans_rights+" Admincount: "+str(admincount)+"\n")
+    disabled_outbound_file.close()
+
+    print("[+] Generating a List of Users with AdminCount=False Transitive Outbound Rights: admincount_false_user_outbound_trans_rights.txt ("+str(entries)+") lines")
