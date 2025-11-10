@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # External dependcies 
 import time, sys, argparse, os
+from neo4j import GraphDatabase
 
 # Internal Modules
-from modules import settings, db, default, dump, help, pathing, query, transitive
+from modules import settings, db, default, dump, help, pathing, query, transitive, hvt, owned, adminCount
 
 if __name__ == "__main__":
     # Setup arguments
@@ -14,6 +15,9 @@ if __name__ == "__main__":
 
     parser.add_argument('-P', '--pathing', help='Run pathing queries - takes longer', required=False, action='store_true')
     parser.add_argument('-T', '--transitive', help='Run transitive queries - takes even longer', required=False, action='store_true')  
+    parser.add_argument("--hvt", help="Run High Value Target (HVT) Queries", required=False, action='store_true')
+    parser.add_argument("--owned", help="Get owned users outbound transitive rights", required=False, action='store_true')
+    parser.add_argument("--adminCount", help="Get AdminCount False Users Outbound Transitive Rights", required=False, action='store_true')
     parser.add_argument('-D', '--dump', help='Dumps raw Cypher queries to more easily modify and use in BH/Neo4j. If selected no queries are performed', required=False, action='store_true')
     parser.add_argument('-H', '--moreHelp', help='Provides context into how to analyze the output files', required=False, action='store_true')
     parser.add_argument('-L', '--listQueries', help='List available queries', required=False, action='store_true')
@@ -65,7 +69,16 @@ if __name__ == "__main__":
 
     # Setup driver connection
     AUTH = (config['bloodhound']['USERNAME'], config['bloodhound']['PASSWORD'])
-    driver = db.db_connect(config['bloodhound']['URI'], AUTH)
+    URI = (config['bloodhound']['URI'])
+    #driver = db.db_connect(config['bloodhound']['URI'], AUTH) 
+    driver = GraphDatabase.driver(URI, auth=AUTH)
+    try:
+        driver.verify_connectivity()
+        print(f"Connected to {URI} successfully!")
+    except Exception as e:
+        #print(f"error: {e}")
+        print(f"Connection to {URI} failed...")
+        sys.exit(1)
 
     # If a single query is defined, execute, otherwise run the default queries
     if args['query']:
@@ -91,6 +104,18 @@ if __name__ == "__main__":
     if args['transitive'] == True:
         transitive.transitive_queries(driver)
 
+    # Executes HVT queries if arg is passed
+    if args['hvt'] == True:
+        hvt.hvt_queries(driver)
+    
+    # Executes HVT queries if arg is passed
+    if args['owned'] == True:
+        owned.owned_queries(driver)
+    
+    # Executes AdminCountnt queries if arg is passed
+    if args['adminCount'] == True:
+        adminCount.adminCount_queries(driver)
+    
     # Close driver connection
     driver.close()
 
