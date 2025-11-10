@@ -4,7 +4,7 @@ import time, sys, argparse, os
 from neo4j import GraphDatabase
 
 # Internal Modules
-from modules import settings, db, default, dump, help, pathing, query, transitive
+from modules import settings, db, default, dump, help, pathing, query, transitive, hvt
 
 if __name__ == "__main__":
     # Setup arguments
@@ -24,6 +24,7 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--password', type=str, help="Password for neo4j authentication", required=False)
     parser.add_argument('-d', "--database", type=str, help="Neo4j database name for queries", required=False)
     parser.add_argument('-O', "--output", type=str, help="Specify an output directory for generated files", required=False)
+    parser.add_argument("--hvt", help="Run High Value Target (HVT) Queries", required=False, action='store_true')
     args = vars(parser.parse_args())
 
     # Track initial start time
@@ -73,7 +74,7 @@ if __name__ == "__main__":
         driver.verify_connectivity()
         print(f"Connected to {URI} successfully!")
     except Exception as e:
-        print(f"error: {e}")
+        #print(f"error: {e}")
         print(f"Connection to {URI} failed...")
         sys.exit(1)
 
@@ -101,6 +102,9 @@ if __name__ == "__main__":
     if args['transitive'] == True:
         transitive.transitive_queries(driver)
 
+    if args['hvt'] == True:
+        hvt.hvt_queries(driver)
+    
     # Close driver connection
     driver.close()
 

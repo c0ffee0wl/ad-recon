@@ -1059,6 +1059,21 @@ def get_groupPathToDA(driver):
     print("[+] Generating Groups with paths to DA: groups_with_path_to_DA.txt ("+str(entries)+") lines")
 
 
-
-
+def get_hvtAdminFalse(driver):
+    result = do_query(driver, "MATCH (m) WHERE m.highvalue=TRUE RETURN m.name, m.objectid")
+    hvt_file = open(config['bloodhound']['OUTPUT_DIR'] + "/hvt_AdminFalse.txt", "w")
+    entries = 0
+    for record in result:
+        if record["m.name"]:
+            hvt_name = record["m.name"]
+            objectid = record["m.objectid"]
+            result1 = do_query(driver, "MATCH (n) WHERE NOT n.objectid='"+objectid+"' and n.admincount=false WITH n MATCH p = shortestPath((n)-[r:MemberOf|AddSelf|WriteSPN|AddKeyCredentialLink|AddMember|AllExtendedRights|ForceChangePassword|GenericAll|GenericWrite|WriteDacl|WriteOwner|Owns*1..]->(g:Group {objectid: '"+objectid+"'})) RETURN n.samaccountname")
+            for record1 in result1: 
+                if record1["n.samaccountname"]:
+                    name = record1["n.samaccountname"]
+                    entries += 1
+                    hvt_file.write("[-] "+name+" AdminCount False and can reach: "+hvt_name+"\n")
+    hvt_file.close()
+    print("[+] Generating High Value Targets (HVT) and objects that are AdminCount False that can reach them: hvt_AdminFalse.txt ("+str(entries)+") lines")
+        
 

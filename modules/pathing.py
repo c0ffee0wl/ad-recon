@@ -5,7 +5,7 @@ def pathing_queries(driver):
     print("Pathing Queries these will take longer")
     print("----")
     query.get_userOutboundRights_firstdegree(driver)
-    query.get_hvtRights(driver)
+    #query.get_hvtRights(driver)
     query.get_gpoRights(driver)
     query.get_userPathToDA(driver)
     query.get_groupPathToDA(driver)
