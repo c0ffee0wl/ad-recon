@@ -1076,4 +1076,19 @@ def get_hvtAdminFalse(driver):
     hvt_file.close()
     print("[+] Generating High Value Targets (HVT) and objects that are AdminCount False that can reach them: hvt_AdminFalse.txt ("+str(entries)+") lines")
         
-
+def get_ownedUserOutboundRights_firstDegree(driver):
+    result = do_query(driver, "MATCH (m:User {owned: true, enabled: true}) return m.name, m.objectid")
+    user_outbound_file=open(config['bloodhound']['OUTPUT_DIR'] + "/owned_users_outbound_1st_rights.txt", "w")
+    entries = 0
+    for record in result:
+        if record["m.name"]:
+            username = record["m.name"]
+            objectid = record["m.objectid"]
+            result1 = do_query(driver, "MATCH p=(u.User {objectid: '"+objectid+"'})-[r1]->(n) WHER r1.isacl=true RETURN count(p)")
+            for record1 in result1:
+                if record1["count(p)"]:
+                    firstdegree_rights=str(record1["count(p)"])
+                    entries += 1
+                    user_outbound_file.write("[-] User: "+username+" First Degree Outbound Rights: "+firstdegree_rights+"\n")
+    user_outbound_file.close()
+    print("[*] Generating Owned Users with First Degree Outbound Rights: owned_users_outbound_1st_rights.txt ("+str(entries)+") lines")

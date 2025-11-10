@@ -4,7 +4,7 @@ import time, sys, argparse, os
 from neo4j import GraphDatabase
 
 # Internal Modules
-from modules import settings, db, default, dump, help, pathing, query, transitive, hvt
+from modules import settings, db, default, dump, help, pathing, query, transitive, hvt, owned
 
 if __name__ == "__main__":
     # Setup arguments
@@ -15,6 +15,8 @@ if __name__ == "__main__":
 
     parser.add_argument('-P', '--pathing', help='Run pathing queries - takes longer', required=False, action='store_true')
     parser.add_argument('-T', '--transitive', help='Run transitive queries - takes even longer', required=False, action='store_true')  
+    parser.add_argument("--hvt", help="Run High Value Target (HVT) Queries", required=False, action='store_true')
+    parser.add_argument("--owned", help="Get owned users outbound transitive rights", required=False, action='store_true')
     parser.add_argument('-D', '--dump', help='Dumps raw Cypher queries to more easily modify and use in BH/Neo4j. If selected no queries are performed', required=False, action='store_true')
     parser.add_argument('-H', '--moreHelp', help='Provides context into how to analyze the output files', required=False, action='store_true')
     parser.add_argument('-L', '--listQueries', help='List available queries', required=False, action='store_true')
@@ -24,7 +26,6 @@ if __name__ == "__main__":
     parser.add_argument('-p', '--password', type=str, help="Password for neo4j authentication", required=False)
     parser.add_argument('-d', "--database", type=str, help="Neo4j database name for queries", required=False)
     parser.add_argument('-O', "--output", type=str, help="Specify an output directory for generated files", required=False)
-    parser.add_argument("--hvt", help="Run High Value Target (HVT) Queries", required=False, action='store_true')
     args = vars(parser.parse_args())
 
     # Track initial start time
@@ -102,8 +103,13 @@ if __name__ == "__main__":
     if args['transitive'] == True:
         transitive.transitive_queries(driver)
 
+    # Executes HVT queries if arg is passed
     if args['hvt'] == True:
         hvt.hvt_queries(driver)
+    
+    # Executes HVT queries if arg is passed
+    if args['owned'] == True:
+        owned.owned_queries(driver)
     
     # Close driver connection
     driver.close()
