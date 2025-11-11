@@ -6,6 +6,6 @@ def transitive_queries(driver):
     print("----")
     query.get_startingPoints(driver) # Check
     query.get_computerOutboundRights_trans(driver) # check
-    query.get_userOutboundRights_trans(driver) # check 
-    query.get_disabledUserOutboundRights_trans(driver) #check
+    query.get_userOutboundRights_trans(driver) # check
+    # query.get_disabledUserOutboundRights_trans(driver) # Function not implemented in query.py
     query.get_userinboundRights_trans(driver) # unique
