@@ -1,17 +1,18 @@
 from neo4j import RoutingControl
 from termcolor import colored
-import itertools, sys, toml
+import itertools, sys, toml, os
 
 # Import config variables
 config = toml.load('config.toml')
 
+# Ensure output directory exists (defensive fix)
+os.makedirs(config['bloodhound']['OUTPUT_DIR'], exist_ok=True)
+
 def do_query(driver, query):
     local_config = config
-    #config = toml.load('config.toml')
     records, _, _ = driver.execute_query(
         query,
         database = local_config['bloodhound']['DATABASE'] ,
-        #routing_=RoutingControl.READ,
         routing_='r',
     )
     return records
