@@ -1085,7 +1085,7 @@ def get_ownedUserOutboundRights_firstDegree(driver):
         if record["m.name"]:
             username = record["m.name"]
             objectid = record["m.objectid"]
-            result1 = do_query(driver, "MATCH p=(u.User {objectid: '"+objectid+"'})-[r1]->(n) WHER r1.isacl=true RETURN count(p)")
+            result1 = do_query(driver, "MATCH p=(u:User {objectid: '"+objectid+"'})-[r1]->(n) WHERE r1.isacl=true RETURN count(p)")
             for record1 in result1:
                 if record1["count(p)"]:
                     firstdegree_rights=str(record1["count(p)"])
